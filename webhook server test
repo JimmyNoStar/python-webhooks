@@ -1,0 +1,174 @@
+
+from asyncio import exceptions
+import random
+import _thread
+from time import sleep
+
+# ************************
+# Configure the ESP32 wifi
+# as STAtion mode.
+import network
+#import wifi_credentials
+
+
+
+# ************************
+# Configure the socket connection
+# over TCP/IP
+import socket
+# AF_INET - use Internet Protocol v4 addresses
+# SOCK_STREAM means that it is a TCP socket.
+# SOCK_DGRAM means that it is a UDP socket.
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(('',80)) # specifies that the socket is reachable by any address the machine happens to have
+s.listen(5)     # max of 5 socket connections
+
+#import machine
+import time
+
+state = 0
+h = 0
+
+from flask import Flask, request, abort
+
+app = Flask(__name__)
+
+
+
+
+
+# global variable x
+
+x = 0
+
+pcInfo = ""#"0|0|0|0|0|0|0|0"
+
+def C_tcp(x):
+    try:
+        while True:
+            global pcInfo
+
+            conn, addr = s.accept()
+            print("Got connection from %s" % str(addr))
+
+            # Socket receive()
+            request=conn.recv(1024)
+            print("")
+            print("Content %s" % str(request))
+            request = str(request)
+
+            pcStatus = request.find('/PC info')
+            #pcStatus = 6
+            if pcStatus == 6:
+                lock.acquire()
+                pcInfo = str(request)[15:-1]
+                lock.release()
+            #else:
+            #pcInfo = "0|0|0|0|0|0|0|0" 
+
+            res = bytes('HTTP/1.1 200 OK\n', 'utf-8')
+            res1 = bytes('Content-Type: text/html\n', 'utf-8')
+            res2 = bytes('Connection: close\n\n', 'utf-8')
+            #res3 = bytes(response, 'utf-8')
+            conn.send(res)
+            #conn.send('HTTP/1.1 200 OK\n')
+            #conn.send('Content-Type: text/html\n')
+            #conn.send('Connection: close\n\n')
+            #conn.send(res1)
+            #conn.send(res2)
+            # Socket close()
+            conn.close()
+
+    except Exception as e:
+        print(e)
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        print(request.json)
+        return 'success', 200
+    else:
+        abort(400)
+
+def Web(x):
+    try:
+        if __name__ == '__main__':
+            app.run()
+    except(exceptions):
+        print(exceptions)
+
+def button():
+    while True:
+        try:
+            global response
+
+            conn, addr = s.accept()
+            print("Got connection from %s" % str(addr))
+
+            # Socket receive()
+            request=conn.recv(1024)
+            print("")
+            print("Content %s" % str(request))
+            request = str(request)
+
+            # Socket send()
+            update = request.find('/Power')
+            #Pc_button(state, update)
+            #code for turin on computer with relay
+            if update == 6 and state == 0:
+                state = 1
+                print("state " + state)
+            elif update == 6 and state == 1:
+                state = 0
+                print("state " + state)
+            else: 
+                response = "works"
+
+            res = bytes('HTTP/1.1 200 OK\n', 'utf-8')
+            res1 = bytes('Content-Type: text/html\n', 'utf-8')
+            res2 = bytes('Connection: close\n\n', 'utf-8')
+            res3 = bytes(response, 'utf-8')
+            conn.send(res)
+            #conn.send('HTTP/1.1 200 OK\n')
+            #conn.send('Content-Type: text/html\n')
+            #conn.send('Connection: close\n\n')
+            conn.send(res1)
+            conn.send(res2)
+            conn.sendall(res3)
+            
+            # Socket close()
+            conn.close()
+
+        except(exceptions):
+            print(exceptions)
+    
+
+#def main_task():
+
+# setting global variable x as 0
+x = 0
+
+    # creating a lock
+lock = _thread.allocate_lock()
+
+    #print("creating threads")
+_thread.start_new_thread(C_tcp, (x,))
+_thread.start_new_thread(Web, (x,))
+_thread.start_new_thread(Web, (x,))
+
+    #print(" start threads")
+    #_thread.exit()
+
+    # wait until threads finish their job
+    
+#while __name__ == "__main__":
+    #main_task()
+
+
+
+
+
+
+
+
+
